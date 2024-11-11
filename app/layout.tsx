@@ -3,6 +3,7 @@ import { Manrope } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/themeprovider";
+import AppWalletProvider from "@/components/AppWalletProvider";
 
 const manrope = Manrope({ subsets: ["latin"] });
 
@@ -39,9 +40,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Toaster />
-
-          {children}
+          <AppWalletProvider>
+            <Toaster />
+            {children}
+          </AppWalletProvider>
         </ThemeProvider>
       </body>
     </html>
