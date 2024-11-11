@@ -107,12 +107,6 @@ const WalletGenerator = () => {
     );
   };
 
-  const togglePhraseVisibility = (index: number) => {
-    setVisiblePhrases(
-      visiblePhrases.map((visible, i) => (i === index ? !visible : visible))
-    );
-  };
-
   const generateWalletFromMnemonic = (
     pathType: string,
     mnemonic: string,
@@ -529,32 +523,6 @@ const WalletGenerator = () => {
                       </Button>
                     </div>
                   </div>
-                  {/* <div className="flex flex-col w-full gap-2">
-                    <span className="text-lg md:text-xl font-bold tracking-tighter">
-                      Secret Phrase
-                    </span>
-                    <div className="flex justify-between w-full items-center gap-2">
-                      <p
-                        onClick={() => copyToClipboard(wallet.mnemonic)}
-                        className="text-primary/80 font-medium cursor-pointer hover:text-primary transition-all duration-300 truncate"
-                      >
-                        {visiblePhrases[index]
-                          ? wallet.mnemonic
-                          : "•".repeat(wallet.mnemonic.length)}
-                      </p>
-
-                      <Button
-                        variant="ghost"
-                        onClick={() => togglePhraseVisibility(index)}
-                      >
-                        {visiblePhrases[index] ? (
-                          <EyeOff className="size-4" />
-                        ) : (
-                          <Eye className="size-4" />
-                        )}
-                      </Button>
-                    </div>
-                  </div> */}
                 </div>
               </motion.div>
             ))}
