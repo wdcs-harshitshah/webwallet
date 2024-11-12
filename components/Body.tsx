@@ -19,8 +19,8 @@ const Body = () => {
                 </motion.div>
                 {/* <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 1.01 }}>
                     <SendTokensCard />
-                </motion.div>
-                <motion.div
+                </motion.div> */}
+                {/* <motion.div
                     whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 1.01 }}
                     className="md:col-span-2"

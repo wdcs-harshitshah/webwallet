@@ -1,47 +1,51 @@
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { useCallback, useEffect, useState } from "react";
-import { toast } from 'sonner';
-import { LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { useState, useEffect, useCallback } from "react";
+import { toast } from "sonner";
 import { balanceUpdateEvent } from "@/lib/events";
 
-export default function GetBalance() {
-    const { connection } = useConnection();
-    const { publicKey, connected } = useWallet();
-    const [balance, setBalance] = useState(0);
+declare global {
+  interface Window {
+    starKeyWallet?: any; 
+  }
+}
 
-    const getBalance = useCallback(async () => {
-        if (!publicKey) {
-            setBalance(0);
-            return;
-        }
+export default function GetBalance(walletAddress:any) {
+  const [balance, setBalance] = useState<number>(0);
 
-        try {
-            const balance = await connection.getBalance(publicKey)
-            setBalance(balance / LAMPORTS_PER_SOL)
-        } catch (error) {
-            toast.error('Failed to fetch balance')
-        }
-    }, [publicKey, connection]);
+  const getBalance = useCallback(async () => {
+    if (!walletAddress) {
+      setBalance(0);
+      return;
+    }
 
-    useEffect(() => {
-        getBalance();
+    try {
+      const balanceSupra = await window.starKeyWallet.getBalance(walletAddress);
+      setBalance(parseFloat(balanceSupra.formattedBalance))
+    } catch (error) {
+      toast.error("Failed to fetch balance");
+    }
+  }, [walletAddress]);
 
-        const handleBalanceUpdate = () => {
-            getBalance();
-        };
+  useEffect(() => {
+    if (walletAddress) {
+      getBalance();
+    }
 
-        balanceUpdateEvent.addEventListener('balanceUpdate', handleBalanceUpdate);
-        return () => {
-            balanceUpdateEvent.removeEventListener('balanceUpdate', handleBalanceUpdate);
-        };
-    }, [getBalance]);
+    const handleBalanceUpdate = () => {
+      getBalance();
+    };
 
-    return (
-        <div className="flex items-center justify-between mb-4">
-            <span className="text-lg font-semibold">Balance:</span>
-            <div className="flex items-center">
-                <span className="mr-2 ">{connected ? balance.toFixed(9) : 0} SOL</span>
-            </div>
-        </div>
-    );
+    balanceUpdateEvent.addEventListener("balanceUpdate", handleBalanceUpdate);
+    return () => {
+      balanceUpdateEvent.removeEventListener("balanceUpdate", handleBalanceUpdate);
+    };
+  }, [walletAddress, getBalance]);
+
+  return (
+    <div className="flex items-center justify-between mb-4">
+      <span className="text-lg font-semibold">Balance:</span>
+      <div className="flex items-center">
+        <span className="mr-2">{walletAddress ? balance.toFixed(9) : 0} SUPRA</span>
+      </div>
+    </div>
+  );
 }

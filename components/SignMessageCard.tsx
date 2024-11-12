@@ -1,7 +1,7 @@
 'use client'
 
 import { ed25519 } from '@noble/curves/ed25519';
-import { useWallet } from '@solana/wallet-adapter-react';
+// import { useWallet } from '@solana/wallet-adapter-react';
 import bs58 from 'bs58';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -11,24 +11,25 @@ import { SignatureIcon } from "lucide-react";
 import { useSetRecoilState } from 'recoil';
 import { signatureMessageAtom } from '@/store/atoms';
 
-export default function SignMessage() {
-    const { publicKey, signMessage, connected } = useWallet();
+export default function SignMessage(walletAddress:any) {
+    // const { publicKey, signMessage, connected } = useWallet();
     const [message, setMessage] = useState('');
     const setSignatureMessage = useSetRecoilState(signatureMessageAtom);
 
     async function handleSignMessage() {
-        if (!publicKey) throw new Error('Wallet not connected!');
-        if (!signMessage) throw new Error('Wallet does not support message signing!');
+        if (!walletAddress) throw new Error('Wallet not connected!');
+        // if (!signMessage) throw new Error('Wallet does not support message signing!');
 
         try {
             const encodedMessage = new TextEncoder().encode(message);
-            const signature = await signMessage(encodedMessage);
+            const signature = await window.starKeyWallet.sendMessage(encodedMessage);
 
-            const isValid = ed25519.verify(signature, encodedMessage, publicKey.toBytes());
+            const isValid = ed25519.verify(signature, encodedMessage, walletAddress);
             if (!isValid) throw new Error('Message signature invalid!');
             setSignatureMessage(bs58.encode(signature));
             toast.success("Message signed!");
         } catch (err) {
+            console.log(err)
             toast.error("Signing failed!");
             return;
         }
@@ -44,7 +45,7 @@ export default function SignMessage() {
             />
             <Button
                 onClick={handleSignMessage}
-                disabled={!message || !connected}
+                disabled={!message || !walletAddress}
             >
                 <SignatureIcon className="mr-2 h-4 w-4" /> Sign
             </Button>
