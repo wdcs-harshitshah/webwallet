@@ -1,5 +1,3 @@
-'use client';
-
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SendIcon } from "lucide-react";
@@ -7,14 +5,13 @@ import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState } from "react";
 import { emitBalanceUpdate } from "@/lib/events";
+import { ethers } from "ethers";
 
-export default function SendTokensCard({ walletAddress }: { walletAddress: any }) {
-    console.log("WALLETADDRESS", walletAddress);
-
+export default function SendTokensCard({ walletAddress, walletType }: any) {
+    console.log(walletType);
     const [amount, setAmount] = useState<number | null>(null);
     const [to, setTo] = useState('');
 
-    // Function to send Supra tokens
     async function sendTokens() {
         if (!walletAddress) {
             toast.error('Wallet not connected!');
@@ -30,29 +27,60 @@ export default function SendTokensCard({ walletAddress }: { walletAddress: any }
         }
 
         try {
-            if (!window.starKeyWallet) {
-                throw new Error("StarKey Wallet is not available!");
-            }
-const tx = {
-    to: to,   
-    amount: amount, 
-    token:'SUPRA'
-}
-console.log("to",to)
-console.log(amount)
-const transaction = await window.starKeyWallet?.sendTokenAmount(tx);
-            console.log("🚀 ~ sendTokens ~ transaction:", transaction)
+            if (walletType === "starkey" && window.starkey) {
+                const tx = {
+                    data: "",
+                    from: walletAddress,
+                    to: to,
+                    value: amount,
+                    chainId: 6
+                };
 
-            if (transaction) {
-                
-                setTimeout(emitBalanceUpdate, 3000); 
-                toast.success(`Sent ${amount} SUP to ${to}`);
+                console.log("🚀 ~ sendTokens ~ StarKey transaction params:", tx);
+
+                const transaction = await window.starkey?.supra?.sendTransaction(tx);
+                console.log("🚀 ~ sendTokens ~ StarKey transaction:", transaction);
+
+                if (transaction) {
+                    setTimeout(emitBalanceUpdate, 3000);
+                    toast.success(`Sent ${amount} SUP to ${to}`);
+                } else {
+                    toast.error("Transaction failed.");
+                }
+            } else if (walletType === "metamask" && window.ethereum) {
+                const provider = new ethers.BrowserProvider(window.ethereum);
+
+                const accounts = await provider.send("eth_accounts", []);
+                if (accounts.length === 0) {
+                    toast.error("MetaMask is not connected!");
+                    return;
+                }
+
+                await provider.send("eth_requestAccounts", []);
+
+                const signer = await provider.getSigner();
+                const tx = {
+                    to: to,
+                    value: ethers.parseEther(amount.toString())
+                };
+
+                console.log("🚀 ~ sendTokens ~ MetaMask transaction params:", tx);
+
+                const transaction = await signer.sendTransaction(tx);
+                console.log("🚀 ~ sendTokens ~ MetaMask transaction:", transaction);
+
+                if (transaction) {
+                    setTimeout(emitBalanceUpdate, 3000);
+                    toast.success(`Sent ${amount} ETH to ${to}`);
+                } else {
+                    toast.error("Transaction failed.");
+                }
             } else {
-                toast.error("Transaction failed.");
+                toast.error("Unsupported wallet type or wallet not available.");
             }
         } catch (err: any) {
             console.error("Send Tokens Error:", err);
-            toast.error("An error occurred while sending tokens.");
+            toast.error(`An error occurred while sending tokens: ${err.message || err}`);
         }
     }
 
